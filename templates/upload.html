@@ -1,0 +1,162 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ title or "Upload Screenshot" }}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #fafafa;
+    }
+    main.container {
+      max-width: 600px;
+      margin: 40px auto;
+      background: #fff;
+      padding: 25px;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    h1 {
+      text-align: center;
+    }
+    form.upload-form {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+    input[type="text"],
+    input[type="file"] {
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+    button {
+      padding: 10px 15px;
+      border: none;
+      border-radius: 8px;
+      background: #007bff;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+    a {
+      text-decoration: none;
+      color: #007bff;
+    }
+
+    /* === Loading Popup === */
+    .loading-popup {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.6);
+      justify-content: center;
+      align-items: center;
+      z-index: 999;
+    }
+    .loading-box {
+      background: white;
+      padding: 25px 30px;
+      border-radius: 12px;
+      text-align: center;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+      animation: fadeIn 0.3s ease;
+    }
+    .spinner {
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #007bff;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 15px;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.9); }
+      to { opacity: 1; transform: scale(1); }
+    }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <h1>{{ title or "📤 Upload Steps Screenshot" }}</h1>
+
+    <!-- Notice/tutorial -->
+    {% if "upload_1" in request.path %}
+      <div class="notice">
+        ⚠️ <strong>Smartband:</strong><br>
+        Make sure your screenshot clearly shows the <b>steps only</b> section.
+      </div>
+    {% elif "upload_2" in request.path %}
+      <div class="notice">
+        ⚠️ <strong>Origin Health:</strong><br>
+        Please make sure the Origin Health screenshot is taken in <b>light mode</b> for better accuracy.
+      </div>
+    {% endif %}
+
+    <form id="uploadForm" method="post" enctype="multipart/form-data" class="upload-form">
+      <label for="name">Your Name:</label>
+      <input type="text" name="name" id="name" placeholder="Enter your name" required>
+
+      <label for="file">Select Screenshot:</label>
+      <input type="file" name="file" id="file" accept="image/*" required>
+
+      <button type="submit">Upload & Analyze</button>
+    </form>
+
+    <p style="text-align:center; margin-top:20px;">
+      <a href="{{ url_for('index') }}">⬅️ Back to Leaderboard</a>
+    </p>
+  </main>
+
+  <!-- Loading Popup -->
+  <div class="loading-popup" id="loadingPopup">
+    <div class="loading-box">
+      <div class="spinner"></div>
+      <h3>Processing image...</h3>
+      <p>Please wait a moment while we analyze your screenshot.</p>
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById('uploadForm');
+    const loadingPopup = document.getElementById('loadingPopup');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      loadingPopup.style.display = 'flex'; // Tampilkan popup loading
+
+      try {
+        const response = await fetch(window.location.pathname, {
+          method: 'POST',
+          body: new FormData(form)
+        });
+
+        loadingPopup.style.display = 'none'; // Tutup popup setelah proses selesai
+
+        if (response.ok) {
+          alert('✅ Upload berhasil!');
+          window.location.href = "{{ url_for('index') }}";
+        } else {
+          alert('❌ Upload gagal, coba lagi.');
+        }
+      } catch (err) {
+        loadingPopup.style.display = 'none';
+        alert('⚠️ Terjadi kesalahan jaringan.');
+      }
+    });
+  </script>
+</body>
+</html>
