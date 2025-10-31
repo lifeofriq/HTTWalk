@@ -5,24 +5,20 @@ from flask import Flask, render_template, request, redirect, url_for
 from werkzeug.utils import secure_filename
 import easyocr
 
-# === Setup Flask ===
+# === Flask Setup ===
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = 'static/uploads'
 app.config['DATABASE'] = 'steps.db'
 
-# === Pastikan folder upload ada ===
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
-# === Setup EasyOCR ===
 reader = easyocr.Reader(['en'])
 
-# === Helper: koneksi ke database ===
 def get_db_connection():
     conn = sqlite3.connect(app.config['DATABASE'])
     conn.row_factory = sqlite3.Row
     return conn
 
-# === Buat tabel kalau belum ada ===
 with get_db_connection() as conn:
     conn.execute('''CREATE TABLE IF NOT EXISTS steps (
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -34,7 +30,7 @@ with get_db_connection() as conn:
     conn.commit()
 
 
-# === ROUTE: Halaman utama ===
+# === ROUTE: Main Page ===
 @app.route('/')
 def index():
     user = request.args.get('user', '')
@@ -65,7 +61,7 @@ def index():
                            selected_name=user)
 
 
-# === ROUTE: Upload gambar ===
+# === ROUTE: Screenshot Upload ===
 @app.route('/upload_1', methods=['GET', 'POST'])
 def upload_1():
     if request.method == 'POST':
@@ -194,27 +190,21 @@ def upload_2():
 #     app.run(host='0.0.0.0', port=5000, debug=True)
 
 if __name__ == '__main__':
-    # === Pastikan database tetap tersimpan walau server tidur ===
     import atexit
     import shutil
 
-    # Lokasi database backup (disimpan di folder /persistent kalau ada)
     os.makedirs("persistent", exist_ok=True)
     BACKUP_DB = os.path.join("persistent", "steps_backup.db")
 
-    # Fungsi otomatis backup DB setiap kali program berhenti
     def backup_db():
         if os.path.exists(app.config['DATABASE']):
             shutil.copy(app.config['DATABASE'], BACKUP_DB)
             print("💾 Database disalin ke backup!")
 
-    # Daftarkan supaya dijalankan waktu app mati
     atexit.register(backup_db)
 
-    # Pulihkan kalau backup ada
     if not os.path.exists(app.config['DATABASE']) and os.path.exists(BACKUP_DB):
         shutil.copy(BACKUP_DB, app.config['DATABASE'])
         print("♻️ Database dipulihkan dari backup")
 
-    # Jalankan server
     app.run(host='0.0.0.0', port=5000, debug=True)
