@@ -185,26 +185,26 @@ def upload_2():
 
 
 # === Run app Local ===
-# if __name__ == '__main__':
-#     # Gunakan host='0.0.0.0' agar bisa diakses dari HP dalam satu WiFi
-#     app.run(host='0.0.0.0', port=5000, debug=True)
-
 if __name__ == '__main__':
-    import atexit
-    import shutil
-
-    os.makedirs("persistent", exist_ok=True)
-    BACKUP_DB = os.path.join("persistent", "steps_backup.db")
-
-    def backup_db():
-        if os.path.exists(app.config['DATABASE']):
-            shutil.copy(app.config['DATABASE'], BACKUP_DB)
-            print("💾 Database disalin ke backup!")
-
-    atexit.register(backup_db)
-
-    if not os.path.exists(app.config['DATABASE']) and os.path.exists(BACKUP_DB):
-        shutil.copy(BACKUP_DB, app.config['DATABASE'])
-        print("♻️ Database dipulihkan dari backup")
-
+    # Gunakan host='0.0.0.0' agar bisa diakses dari HP dalam satu WiFi
     app.run(host='0.0.0.0', port=5000, debug=True)
+
+# if __name__ == '__main__':
+#     import atexit
+#     import shutil
+#
+#     os.makedirs("persistent", exist_ok=True)
+#     BACKUP_DB = os.path.join("persistent", "steps_backup.db")
+#
+#     def backup_db():
+#         if os.path.exists(app.config['DATABASE']):
+#             shutil.copy(app.config['DATABASE'], BACKUP_DB)
+#             print("💾 Database disalin ke backup!")
+#
+#     atexit.register(backup_db)
+#
+#     if not os.path.exists(app.config['DATABASE']) and os.path.exists(BACKUP_DB):
+#         shutil.copy(BACKUP_DB, app.config['DATABASE'])
+#         print("♻️ Database dipulihkan dari backup")
+#
+#     app.run(host='0.0.0.0', port=5000, debug=True)

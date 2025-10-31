@@ -149,3 +149,32 @@ a:hover {
     text-align: center;
   }
 }
+
+.site-footer {
+  width: 100%;
+  background-color: #415FFF;
+  padding: 12px 16px;
+  position: justify;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 14px;
+  color: white;
+  box-sizing: border-box;
+  margin-top: 24px;
+}
+.footer-inner {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  opacity: 0.9;
+}
+.footer-sep {
+  color: #ccc;
+}
+@media (max-width: 480px) {
+  .site-footer { font-size: 13px; padding: 10px 12px; }
+}
+</style>
