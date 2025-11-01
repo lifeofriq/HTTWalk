@@ -4,5 +4,5 @@ easyocr==1.7.1
 opencv-python-headless==4.8.0.76
 numpy==1.26.4
 python-dotenv==1.0.0
-torch==2.1.0
-torchvision==0.16.0
+torch==2.1.0+cpu
+torchvision==0.16.0+cpu
