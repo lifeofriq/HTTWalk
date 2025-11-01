@@ -12,7 +12,8 @@ app.config['DATABASE'] = 'steps.db'
 
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
-reader = easyocr.Reader(['en'])
+model_dir = os.path.join(os.path.dirname(__file__), 'models')
+reader = easyocr.Reader(['en'], model_storage_directory=model_dir)
 
 def get_db_connection():
     conn = sqlite3.connect(app.config['DATABASE'])
