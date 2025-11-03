@@ -1,8 +1,12 @@
 Flask==2.3.2
+gunicorn==21.2.0
 pillow==10.2.0
 easyocr==1.7.1
 opencv-python-headless==4.8.0.76
 numpy==1.26.4
 python-dotenv==1.0.0
-torch==2.5.1
-torchvision==0.20.1
+
+# Smaller, CPU-only version of PyTorch
+torch==2.5.1+cpu
+torchvision==0.20.1+cpu
+--extra-index-url https://download.pytorch.org/whl/cpu
