@@ -15,11 +15,14 @@ os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 model_dir = os.path.join(os.path.dirname(__file__), 'models')
 reader = easyocr.Reader(['en'], model_storage_directory=model_dir)
 
+
 def get_db_connection():
     conn = sqlite3.connect(app.config['DATABASE'])
     conn.row_factory = sqlite3.Row
     return conn
 
+
+# === Database Initialization ===
 with get_db_connection() as conn:
     conn.execute('''CREATE TABLE IF NOT EXISTS steps (
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -29,6 +32,37 @@ with get_db_connection() as conn:
                         created_at TEXT
                     )''')
     conn.commit()
+
+
+# === Helper: Save Steps with “Keep Biggest per Day” Logic ===
+def save_steps(name, steps, filename):
+    conn = get_db_connection()
+    today = datetime.now().strftime("%Y-%m-%d")
+
+    existing = conn.execute('''
+        SELECT id, steps FROM steps
+        WHERE name = ? AND DATE(created_at) = ?
+    ''', (name, today)).fetchone()
+
+    if existing:
+        if steps > existing['steps']:
+            conn.execute('''
+                UPDATE steps
+                SET steps = ?, filename = ?, created_at = ?
+                WHERE id = ?
+            ''', (steps, filename, datetime.now().strftime("%Y-%m-%d %H:%M:%S"), existing['id']))
+            print(f"🔄 Updated {name}'s steps for {today} → {steps}")
+        else:
+            print(f"⚠️ Ignored smaller steps ({steps}) for {name} on {today}")
+    else:
+        conn.execute('''
+            INSERT INTO steps (name, steps, filename, created_at)
+            VALUES (?, ?, ?, ?)
+        ''', (name, steps, filename, datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
+        print(f"✅ Added new record for {name} ({steps} steps)")
+
+    conn.commit()
+    conn.close()
 
 
 # === ROUTE: Main Page ===
@@ -62,7 +96,7 @@ def index():
                            selected_name=user)
 
 
-# === ROUTE: Screenshot Upload ===
+# === ROUTE: Screenshot Upload (Smartband) ===
 @app.route('/upload_1', methods=['GET', 'POST'])
 def upload_1():
     if request.method == 'POST':
@@ -88,20 +122,15 @@ def upload_1():
             match = re.search(r'\b\d{3,6}\b', text.replace(',', ''))
             steps = int(match.group()) if match else 0
 
-            # Simpan ke database
-            conn = get_db_connection()
-            conn.execute('''
-                INSERT INTO steps (name, steps, filename, created_at)
-                VALUES (?, ?, ?, ?)
-            ''', (name, steps, filename, datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
-            conn.commit()
-            conn.close()
+            # Simpan ke database (pakai logic baru)
+            save_steps(name, steps, filename)
 
             return redirect(url_for('index'))
 
     return render_template('upload.html', endpoint='upload_1', title="Smartband Upload")
 
-# Upload iphone ok, origin ok smartband not ok
+
+# === ROUTE: Screenshot Upload (Origin / Apple Health) ===
 @app.route('/upload_2', methods=['GET', 'POST'])
 def upload_2():
     if request.method == 'POST':
@@ -157,12 +186,10 @@ def upload_2():
             if pattern_priority:
                 steps = int(pattern_priority.group(2))
             else:
-                # fallback kalau tidak ketemu di atas
                 match = re.search(r'(\d{3,6})\s*steps', cleaned_text)
                 if match:
                     steps = int(match.group(1))
                 else:
-                    # Ambil angka masuk akal kalau tetap tidak ketemu
                     numbers = re.findall(r'\b\d{3,6}\b', cleaned_text)
                     if numbers:
                         steps = max(map(int, numbers))
@@ -171,25 +198,15 @@ def upload_2():
 
             print(f"➡️  Hasil akhir langkah untuk {name}: {steps}")
 
-            # Simpan ke DB
-            conn = get_db_connection()
-            conn.execute('''
-                INSERT INTO steps (name, steps, filename, created_at)
-                VALUES (?, ?, ?, ?)
-            ''', (name, steps, filename, datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
-            conn.commit()
-            conn.close()
+            # Simpan ke database (pakai logic baru)
+            save_steps(name, steps, filename)
 
             return redirect(url_for('index'))
 
     return render_template('upload.html', endpoint='upload_2', title="Origin Health and Apple Health Upload")
 
 
-# # === Run app Local ===
-# if __name__ == '__main__':
-#     # Gunakan host='0.0.0.0' agar bisa diakses dari HP dalam satu WiFi
-#     app.run(host='0.0.0.0', port=5000, debug=True)
-
+# === Run App ===
 if __name__ == '__main__':
     import atexit
     import shutil
