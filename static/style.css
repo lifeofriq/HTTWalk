@@ -177,4 +177,130 @@ a:hover {
 @media (max-width: 480px) {
   .site-footer { font-size: 13px; padding: 10px 12px; }
 }
+
+.gold {
+  background: linear-gradient(to right, #ffd700, #ffec8b);
+  font-weight: bold;
+}
+
+.silver {
+  background: linear-gradient(to right, #c0c0c0, #e0e0e0);
+  font-weight: bold;
+}
+
+.bronze {
+  background: linear-gradient(to right, #cd7f32, #e6b17e);
+  font-weight: bold;
+}
+
+.leaderboard table tr.gold td,
+.leaderboard table tr.silver td,
+.leaderboard table tr.bronze td {
+  color: #000;
+}
+
+.pagination {
+  text-align: center;
+  margin-top: 15px;
+}
+.page-btn {
+  display: inline-block;
+  margin: 0 10px;
+  padding: 6px 12px;
+  background: #007bff;
+  color: white;
+  border-radius: 6px;
+  text-decoration: none;
+  font-size: 14px;
+}
+.page-btn:hover {
+  background: #0056b3;
+}
+
+/* === Modal Overlay === */
+.modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  z-index: 999;
+  justify-content: center;
+  align-items: center;
+}
+
+/* === Modal Box (Upload & Login) === */
+.upload-content, .login-content {
+  background: #fff;
+  border-radius: 12px;
+  padding: 25px 30px;
+  width: 90%;
+  max-width: 360px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+  text-align: center;
+  animation: fadeIn 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* === Judul Modal === */
+.upload-content h3, .login-content h3 {
+  margin-bottom: 18px;
+  font-weight: 600;
+  color: #222;
+}
+
+/* === Input Field === */
+.upload-content input, .login-content input {
+  width: 100%;
+  margin: 8px 0;
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 15px;
+  text-align: center;
+}
+
+/* === Tombol di Modal === */
+.btn-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 12px;
+  width: 100%;
+}
+
+.choice-btn, .close-btn {
+  padding: 10px;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  cursor: pointer;
+  transition: 0.2s ease;
+  width: 100%;
+  font-weight: 500;
+}
+
+.choice-btn {
+  background: #007bff;
+  color: #fff;
+}
+.choice-btn:hover {
+  background: #0066d6;
+}
+
+.close-btn {
+  background: #aaa;
+  color: #fff;
+}
+.close-btn:hover {
+  background: #888;
+}
+
+/* === Animasi Popup === */
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.9); }
+  to { opacity: 1; transform: scale(1); }
+}
+
 </style>

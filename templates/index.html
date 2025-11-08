@@ -19,35 +19,59 @@
         <thead>
           <tr>
             <th>Rank</th>
-            <th>Name</th>
+            <th>Company ID</th>
             <th>Total Steps</th>
           </tr>
         </thead>
         <tbody>
-          {% for name, steps in leaderboard %}
-          <tr>
-            <td>{{ loop.index }}</td>
-            <td>{{ name }}</td>
-            <td>{{ steps }}</td>
+          {% for row in leaderboard %}
+          <tr class="
+            {% if (page - 1) * 10 + loop.index == 1 %}gold
+            {% elif (page - 1) * 10 + loop.index == 2 %}silver
+            {% elif (page - 1) * 10 + loop.index == 3 %}bronze
+            {% endif %}
+          ">
+            <td>{{ (page - 1) * 10 + loop.index }}</td>
+            <td>{{ row['name'] }}</td>
+            <td>{{ row['total_steps'] }}</td>
           </tr>
           {% else %}
           <tr><td colspan="3" style="text-align:center;">No data yet</td></tr>
           {% endfor %}
         </tbody>
       </table>
+
+      <!-- Pagination Controls -->
+      <div class="pagination">
+        {% if page > 1 %}
+          <a href="/?page={{ page - 1 }}" class="page-btn">⬅</a>
+        {% endif %}
+        <span>Page {{ page }} of {{ pages }}</span>
+        {% if page < pages %}
+          <a href="/?page={{ page + 1 }}" class="page-btn">➡</a>
+        {% endif %}
+      </div>
     </section>
 
     <!-- Personal Stats Section -->
     <section class="personal">
       <h2>👣 Personal Stats</h2>
-      <form method="get" action="/">
-        <label for="user">Select user:</label>
-        <select name="user" id="user" onchange="this.form.submit()">
-          <option value="">-- Choose name --</option>
-          {% for u in users %}
-            <option value="{{ u }}" {% if selected_name == u %}selected{% endif %}>{{ u }}</option>
-          {% endfor %}
-        </select>
+
+      <form id="searchForm" method="get" action="/" autocomplete="off">
+        <label for="userSearch">Search Company ID:</label>
+        <div style="position: relative; width: 80%;">
+          <input
+            type="text"
+            id="userSearch"
+            name="user"
+            value="{{ selected_name }}"
+            placeholder="Type to search..."
+            style="padding:8px; width:100%; border-radius:6px; border:1px solid #ccc;"
+            oninput="showSuggestions(this.value)"
+            onfocus="showSuggestions(this.value)"
+          >
+          <ul id="suggestionList" class="suggestions"></ul>
+        </div>
       </form>
 
       {% if selected_name %}
@@ -81,72 +105,147 @@
       {% endif %}
     </section>
 
+    <style>
+      .suggestions {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        position: absolute;
+        top: 38px;
+        width: 100%;
+        background: white;
+        border: 1px solid #ccc;
+        border-top: none;
+        border-radius: 0 0 6px 6px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        max-height: 180px;
+        overflow-y: auto;
+        z-index: 999;
+        display: none;
+      }
+
+      .suggestions li {
+        padding: 8px 12px;
+        cursor: pointer;
+      }
+
+      .suggestions li:hover {
+        background-color: #f0f0f0;
+      }
+    </style>
+
+    <script>
+      const users = {{ users|tojson }};
+      function showSuggestions(value) {
+        const list = document.getElementById("suggestionList");
+        list.innerHTML = "";
+        if (!value.trim()) {
+          list.style.display = "none";
+          return;
+        }
+        const filtered = users.filter(u => u.toLowerCase().includes(value.toLowerCase())).slice(0, 8);
+        if (filtered.length === 0) {
+          list.style.display = "none";
+          return;
+        }
+        filtered.forEach(u => {
+          const item = document.createElement("li");
+          item.textContent = u;
+          item.onclick = () => {
+            document.getElementById("userSearch").value = u;
+            list.style.display = "none";
+            document.getElementById("searchForm").submit();
+          };
+          list.appendChild(item);
+        });
+        list.style.display = "block";
+      }
+
+      document.addEventListener("click", (e) => {
+        if (!e.target.closest("#userSearch") && !e.target.closest("#suggestionList")) {
+          document.getElementById("suggestionList").style.display = "none";
+        }
+      });
+    </script>
+
     <!-- Upload Button -->
     <p style="text-align:center; margin-top:20px;">
       <button class="btn" onclick="openUploadChoice()">📤 Upload Screenshot</button>
     </p>
+
+    <!-- Login as Admin Button -->
+    <p style="text-align:center; margin-top:10px;">
+      <button onclick="openLoginModal()" style="background:none;border:none;color:#007bff;cursor:pointer;text-decoration:underline;">Login as Admin</button>
+    </p>
   </main>
-      <footer class="site-footer">
-          <div class="footer-inner">
-            <span>Thariq Putradhafa</span>
-            <span class="footer-sep">•</span>
-            <span>Kodingiin</span>
-          </div>
-      </footer>
 
-<div id="uploadModal" class="modal">
-  <div class="modal-content">
-    <h3>Choose Upload Type</h3>
-    <p>Select which app your screenshot is from:</p>
-    <button onclick="window.location.href='/upload_1'" class="choice-btn">⌚ Smartband</button>
-    <button onclick="window.location.href='/upload_2'" class="choice-btn">📱 Origin Health & Apple Health</button>
-    <br><br>
-    <button onclick="closeUploadChoice()" class="close-btn">Cancel</button>
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <span>Thariq Putradhafa</span>
+      <span class="footer-sep">•</span>
+      <span>Kodingiin</span>
+    </div>
+  </footer>
+
+  <!-- Upload Modal -->
+  <div id="uploadModal" class="modal">
+    <div class="upload-content">
+      <h3>Choose Upload Type</h3>
+      <p>Select which app your screenshot is from:</p>
+      <button onclick="window.location.href='/upload_1'" class="choice-btn">⌚ Smartband</button><br>
+      <button onclick="window.location.href='/upload_2'" class="choice-btn">📱 Origin Health & Apple Health</button>
+      <br><br>
+      <button onclick="closeUploadChoice()" class="close-btn">Cancel</button>
+    </div>
   </div>
-</div>
 
-      <style>
-        .modal {
-          display: none;
-          position: fixed;
-          z-index: 999;
-          padding-top: 20%;
-          left: 0; top: 0; width: 100%; height: 100%;
-          background-color: rgba(0,0,0,0.6);
-        }
-        .modal-content {
-          margin: auto;
-          background: white;
-          border-radius: 15px;
-          padding: 20px;
-          text-align: center;
-          width: 80%;
-          max-width: 350px;
-        }
-        .choice-btn, .close-btn {
-          margin: 8px 0;
-          padding: 10px 15px;
-          border: none;
-          border-radius: 8px;
-          background: #007bff;
-          color: white;
-          cursor: pointer;
-          width: 90%;
-          font-size: 16px;
-        }
-        .close-btn {
-          background: #999;
-        }
-      </style>
+<!-- Admin Login Modal -->
+  <div id="loginModal" class="modal">
+    <div class="login-content">
+      <h3>Admin Login</h3>
+      <form method="post" action="/admin_login">
+        <input type="text" name="username" placeholder="Username" required>
+        <input type="password" name="password" placeholder="Password" required>
+        <div class="btn-group">
+          <button type="submit" class="choice-btn">Login</button>
+          <button type="button" class="close-btn" onclick="closeLoginModal()">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
 
-      <script>
-        function openUploadChoice() {
-          document.getElementById("uploadModal").style.display = "block";
-        }
-        function closeUploadChoice() {
-          document.getElementById("uploadModal").style.display = "none";
-        }
-      </script>
+    <script>
+    function openLoginModal() {
+      const modal = document.getElementById("loginModal");
+      modal.style.display = "flex";
+    }
 
+    function closeLoginModal() {
+      document.getElementById("loginModal").style.display = "none";
+    }
+
+    window.onclick = function(e) {
+      const modal = document.getElementById("loginModal");
+      if (e.target === modal) modal.style.display = "none";
+    }
+
+      function openUploadChoice() {
+    const modal = document.getElementById("uploadModal");
+    modal.style.display = "flex";
+  }
+
+  function closeUploadChoice() {
+    document.getElementById("uploadModal").style.display = "none";
+  }
+
+  // supaya klik di luar modal menutup popup
+  window.addEventListener("click", function(e) {
+    const uploadModal = document.getElementById("uploadModal");
+    if (e.target === uploadModal) {
+      uploadModal.style.display = "none";
+    }
+  });
+
+    </script>
 </body>
 </html>
